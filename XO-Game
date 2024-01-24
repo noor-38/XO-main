@@ -1,0 +1,33 @@
+
+public class Cell  {
+    int i;
+    int j;
+    public Cell(int i_free,int j_free){
+        i=i_free;
+        j=j_free;
+    }
+
+    public int getI() {
+        return i;
+    }
+
+    public int getJ() {
+        return j;
+    }
+
+    public void setI(int i) {
+        this.i = i;
+    }
+
+    public void setJ(int j) {
+        this.j = j;
+    }
+
+    @Override
+    public  String toString() {
+        return "Cell{" +
+                "i=" + i +
+                ", j=" + j +
+                '}';
+    }
+}
