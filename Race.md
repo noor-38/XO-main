@@ -33,14 +33,16 @@ public class Racer implements Runnable{
 	
 	public Racer(int speed, Track track) {
 		this.id = globalId++;
-		this.speed = speed;
+                setSpeed(speed);
 		this.track = track;
 	}
 	
 	public void go() {
+         Thread.currentThread().setPriority(speed);
 		for (int i=1; i <= 100; i++) {
 			if ( i == 100) {
-             System.out.printf("Runner %d finished %d%s\n", id, i, getPlace(id));
+                   track.setFinishedRacers();
+                  System.out.println("Ranner "+this.id+" Ran"+" "+track.getFinishedRacers()%10+helpeNamed(track.getFinishedRacers()));
 			}
 			else {
              System.out.printf("Runner %d ran %d meters\n", id, i, getPlace(id));
@@ -54,7 +56,7 @@ public class Racer implements Runnable{
 			}
 		}
 	}
-	
+	/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*
 	private String getPlace(int place) {
         if (place >= 10 && place <= 20) {
             return "th";
@@ -70,6 +72,26 @@ public class Racer implements Runnable{
             default:
                 return "th";
         }
+	*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/
+  private String helpeNamed(int place){
+        if(place%10==1){
+            return "st";
+        } else if (place%10==2) {
+            return "nd";
+        }
+        else if (place%10==3)
+    {
+        return "rd";
+    }
+        else return "thd";
+    }
+
+ 
+	   public void setSpeed(int sp) {
+       if(sp>=1 && sp<=10) this.speed = sp;
+       else
+           System.out.println("This speed is unvaild");
+    }
     }
 
 	@Override
@@ -96,6 +118,11 @@ public class Track {
 	public void incFinishedRacers() {
 		finishedRacers++;
 	}
+ //    public void setFinishedRacers() {
+        this.finishedRacers=getFinishedRacers()+1;
+    }
+    option-2
+    //
 	
 }
 
