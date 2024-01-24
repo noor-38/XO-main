@@ -31,3 +31,298 @@ public class Cell  {
                 '}';
     }
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+public abstract class  Player extends Game {
+    public Player(Game.PlayerType P) {
+        this.setPlayT(P);
+
+    }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+import java.util.Random;
+import java.util.Scanner;
+
+public class UserGame extends Player implements Runnable {
+    PlayerType UserPlayer;
+
+    public UserGame(PlayerType P, PlayerType P2) {
+        super(P);
+        UserPlayer = P2;
+    }
+
+    @Override
+    public void run() {
+        synchronized (this) {
+            while (true) {
+                if (getTurn() == UserPlayer) {
+                    Cell freeCells[] = getFreeCell(gameBoard);
+                    if (freeCells != null) {
+                        Scanner s = new Scanner(System.in);
+                        System.out.println("please choose a cell to put!");
+                        for (int k = 0; k < freeCells.length; k++) {
+                            System.out.println(freeCells[k].toString());
+                        }
+                        int i = s.nextInt();
+                        int j = s.nextInt();
+                        if (this.setGameBoard(this.PlayT, i, j)) {
+                            System.exit(0);
+                        } else {
+                            printBoard();
+                            System.out.println("-------------**-------------" + "\n");
+                        }
+                    } else {
+                        System.out.println("Board is full");
+                        System.exit(1);
+
+                    }
+                } else {
+                    synchronized (this) {
+                        Cell freeCells[] = getFreeCell(gameBoard);
+                        if (freeCells != null) {
+                            Random random = new Random();
+                            int randomIndex = random.nextInt(freeCells.length);
+                            if(this.setGameBoard(this.PlayT, freeCells[randomIndex].getI(), freeCells[randomIndex].getJ())){
+                                System.exit(0);
+
+                            }
+                            else {
+                                printBoard();
+                                System.out.println("-------------**-------------" + "\n");
+                            }
+                        } else {
+                            System.out.println("Board is full");
+                            System.exit(0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+import java.util.Random;
+
+public class SelfGame extends Player implements Runnable {
+    // Player P;
+    public SelfGame(PlayerType P1) {
+        super(P1);
+    }
+
+
+    @Override
+    public void run() {
+        synchronized (this) {
+            while (true) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    System.out.println(e.toString());
+                }
+                if (getTurn() == this.PlayT) {
+                    Cell freeCells[] = getFreeCell(gameBoard);
+                    if (freeCells != null) {
+
+                        Random random = new Random();
+                        int randomIndex = random.nextInt(freeCells.length);
+                        if (this.setGameBoard(this.PlayT, freeCells[randomIndex].getI(), freeCells[randomIndex].getJ())) {
+
+                            System.exit(0);
+                        } else {
+                            printBoard();
+                            System.out.println("-------------**-------------" + "\n");
+                        }
+                    }
+                    else {
+                        System.out.println("Board is full");
+                        System.exit(0);
+                    }
+
+
+                }
+            }
+
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+public abstract class Game implements Runnable {
+    enum PlayerType {
+        X, O, Empty
+    }
+
+    protected PlayerType[][] gameBoard = new PlayerType[5][5];
+    PlayerType PlayT;
+
+    public void printBoard() {
+        synchronized (this) {
+            for (PlayerType[] playerTypes : gameBoard) {
+                for (int j = 0; j < gameBoard.length; j++) {
+                    if (playerTypes[j] != null)
+                        System.out.print("|" + playerTypes[j] + "|");
+                    else
+                        System.out.print(" - ");
+
+                }
+                System.out.println();
+            }
+        }
+    }
+
+
+    public PlayerType getTurn() {
+        synchronized (this) {
+            return getPlayT();
+        }
+    }
+
+    public Cell[] getFreeCell(PlayerType[][] gameBoard) {
+        synchronized (this) {
+            int c = HelperCountFree(), FC = 0;
+            Cell[] FreeCell;
+            if (c == 0) {
+                FreeCell = null;
+            } else {
+                FreeCell = new Cell[c];
+                for (int i = 0; i < gameBoard.length; i++) {
+                    for (int j = 0; j < gameBoard.length; j++) {
+                        if (gameBoard[i][j] != PlayerType.X && gameBoard[i][j] != PlayerType.O) {
+                            FreeCell[FC] = new Cell(i, j);
+                            FC++;
+                        }
+                    }
+                }
+            }
+            return FreeCell;
+        }
+    }
+
+    private int HelperCountFree() {
+        synchronized (this) {
+            int c = 0;
+            for (PlayerType[] playerTypes : gameBoard) {
+                for (int j = 0; j < gameBoard.length; j++) {
+                    if (playerTypes[j] != PlayerType.X && playerTypes[j] != PlayerType.O) {
+                        c++;
+                    }
+                }
+            }
+            return c;
+        }
+    }
+
+    public boolean setGameBoard(PlayerType PT, int i, int j) {
+        synchronized (this) {
+            this.gameBoard[i][j] = PT;
+            if (checkForWin(i, j, PT)) {
+                printBoard();
+                System.out.println("the winner is " + PT);
+                return true;
+            } else {
+                if (PT == PlayerType.X)
+                    this.setPlayT(PlayerType.O);
+                else
+                    this.setPlayT(PlayerType.X);
+                return false;
+            }
+        }
+    }
+
+    private synchronized boolean checkForWin(int row, int col, PlayerType PT) {
+        int cr = 0;
+        int cc = 0;
+        int cD= 0;
+
+        for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 5; j++) {
+                if (this.gameBoard[i][j] != null && this.gameBoard[i][j] == PT) {
+                    cr++;
+                }
+                if (this.gameBoard[j][i] != null && this.gameBoard[j][i] == PT) {
+                    cc++;
+                }
+                if (this.gameBoard[j][j] != null && this.gameBoard[j][j] == PT) {
+                    cD++;
+                }
+                }
+            boolean f = (this.gameBoard[i][0] != PT && this.gameBoard[i][4] == PT) || (this.gameBoard[i][0] == PT && this.gameBoard[i][4] != PT);
+            if (cr == 4 && f) {
+                return true;
+            }
+            if (cr == 5) {
+                return true;
+            }
+            boolean f2 = (this.gameBoard[0][i] != PT && this.gameBoard[4][i] == PT) || (this.gameBoard[0][i] == PT && this.gameBoard[4][i] != PT);
+            if (cc == 4 && f2) {
+                return true;
+            }
+            if (cc == 5) {
+                return true;
+            }
+            boolean f3 = (this.gameBoard[0][0] != PT && this.gameBoard[4][4] == PT) || (this.gameBoard[0][0] == PT && this.gameBoard[4][4] != PT);
+            if (cD == 4 && f3) {
+                return true;
+            }
+            if (cD == 5) {
+                return true;
+            }
+            cr = 0;
+            cc = 0;
+            cD=0;
+        }
+
+        return false;
+
+    }
+
+    public void setPlayT(PlayerType playT) {
+        synchronized (this) {
+            this.PlayT = playT;
+        }
+    }
+
+    public PlayerType getPlayT() {
+        synchronized (this) {
+            return PlayT;
+        }
+    }
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+
+
+        Scanner Sc = new Scanner(System.in);
+        UserGame UserG;
+
+        System.out.println("Are you want to play? if yes put 1 else put 0");
+        int YesOrNo = Sc.nextInt();
+        while (YesOrNo != 0 && YesOrNo != 1) {
+            System.out.println("Are you want to play? if yes put 1 else put 0");
+            YesOrNo = Sc.nextInt();
+        }
+        if (YesOrNo == 1) {
+            UserG = new UserGame(Game.PlayerType.O, Game.PlayerType.X);
+            try {
+                Thread tUserG = new Thread(UserG);
+                Thread t2UserG = new Thread(UserG);
+                tUserG.start();
+                t2UserG.start();
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                System.out.println(e.toString());
+            }
+        } else {
+            SelfGame SelfG = new SelfGame(Game.PlayerType.O);
+            Thread t = new Thread(SelfG);
+            Thread t2 = new Thread(SelfG);
+            t.start();
+            t2.start();
+        }
+    }
+}
+
+
+
+
